@@ -157,4 +157,38 @@ public class ItemDAO2 {
 			throw new DAOException("レコードの操作に失敗しました。");
 		} 
 	}
+
+	public List<ItemBean> findByPrice(int minPrice, int maxPrice) throws DAOException {
+		// 実行するSQLを設定
+		String sql = "SELECT * FROM item WHERE price BETWEEN ? AND ?";
+		if (maxPrice == 0) {
+			sql = "SELECT * FROM item WHERE price >= ?";
+		}
+		
+		try (// データベースへの接続
+				 Connection con = DriverManager.getConnection(url, user, pass);
+				 // PreparedStatementオブジェクトの取得
+				 PreparedStatement st = con.prepareStatement(sql);) {
+				// 主キーの指定
+				st.setInt(1, minPrice);
+				if (maxPrice > 0) {
+					st.setInt(2,  maxPrice);
+				}
+				// SQLの実行
+				List<ItemBean> list = new ArrayList<ItemBean>();
+				try (ResultSet rs = st.executeQuery();) {
+					while (rs.next()) {
+						int code = rs.getInt("code");
+						String name = rs.getString("name");
+						int price = rs.getInt("price");
+						list.add(new ItemBean(code, name, price));
+					}
+				}
+				return list;
+			} catch (SQLException e) {
+				e.printStackTrace();
+				throw new DAOException("レコードの操作に失敗しました。");
+			} 
+		
+	}
 }

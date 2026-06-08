@@ -9,7 +9,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
 import la.bean.ItemBean;
 import la.dao.DAOException;
 import la.dao.ItemDAO2;
@@ -20,13 +19,15 @@ public class ItemServlet2 extends HttpServlet {
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		try {
+			// リクエストパラメータの文字コード（エンコーディング）を設定
 			request.setCharacterEncoding("UTF-8");
 			// パラメータの解析
 			String action = request.getParameter("action");
 			// モデルのDAOを生成
 			ItemDAO2 dao = new ItemDAO2();
 			// パラメータなしの場合は全レコード表示
-			if (action == null || action.length() == 0) {
+			// if (action == null || action.length() == 0) {
+			if (action == null || action.isEmpty()) {
 				List<ItemBean> list = dao.findAll();
 				// Listをリクエストスコープに入れてJSPへフォーワードする
 				request.setAttribute("items", list);
@@ -58,8 +59,18 @@ public class ItemServlet2 extends HttpServlet {
 			}
 			// searchは検索
 			else if (action.equals("search")) {
-				int price = Integer.parseInt(request.getParameter("price"));
-				List<ItemBean>list = dao.findByPrice(price);
+				// リクエストパラメータを取得
+				int minPrice = 0;
+				int maxPrice = 0;
+				try {
+					String minPriceString = request.getParameter("minPrice");
+					String maxPriceString = request.getParameter("maxPrice");
+					minPrice = Integer.parseInt(minPriceString);
+					maxPrice = Integer.parseInt(maxPriceString);
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				}
+				List<ItemBean>list = dao.findByPrice(minPrice, maxPrice);
 				// Listをリクエストスコープに入れてJSPへフォーワードする
 				request.setAttribute("items", list);
 				gotoPage(request, response, "/showItem2.jsp");
